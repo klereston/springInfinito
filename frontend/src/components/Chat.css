@@ -1,0 +1,11 @@
+.chat{
+    height: 56rem;
+    background-color: bisque;
+    display: block;
+    color: black;
+}
+
+.chatForm{
+    align-items: end;   
+    justify-content: end;
+}

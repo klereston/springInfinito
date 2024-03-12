@@ -1,0 +1,21 @@
+.entry_bg {
+    height: 60rem;
+    width: 30rem;
+    background: url("/bglogin.jpg");
+    background-color: white;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+    object-fit: scale-down;
+    color: black;
+  }
+  
+  .wellcome_login{
+      position: relative;
+      top: 40rem;
+  }
+
+  h2{
+    background-color: white;
+    border-radius: 4px;
+  }

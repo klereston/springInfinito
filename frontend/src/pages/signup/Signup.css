@@ -1,0 +1,22 @@
+.signup_bg {
+    height: 60rem;
+    width: 30rem;
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url("/bglogin.jpg");
+    background-repeat: no-repeat;
+    background-color: white;
+    background-position: center;
+    background-attachment: fixed;
+    color: white;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 30px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+  }
+
+  input{
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 28px;
+  }
