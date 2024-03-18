@@ -1,5 +1,6 @@
 #root {
-  max-width: 1280px;
+  max-width: 780px;
+  min-width: 780px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
@@ -8,5 +9,5 @@
 .appView {
   height: 60rem;
   width: 30rem;
-  background-color: black;
 }
+

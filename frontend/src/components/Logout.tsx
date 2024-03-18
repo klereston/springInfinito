@@ -6,7 +6,7 @@ const Logout = () => {
     return (
         <>
         { !loading ? (
-            <p onClick={logout}>Log out</p>
+            <p onClick={logout}>Logout</p>
             ) : (
             <p> Loading... </p>
         )}

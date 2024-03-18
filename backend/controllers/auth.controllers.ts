@@ -2,136 +2,137 @@ import bcrypt from "bcryptjs"
 import { PrismaClient } from '@prisma/client'
 import { User } from '../models/user.model'
 import jwt from 'jsonwebtoken'
+import connectToPrismaDB from "../db/connectToPrismaDB"
 
 const JWT_SECRET="ASD123"
 export const signup: any = async (req: any, res: any) => {
     try {
+
+        //INSTANCE DB
         const prisma = new PrismaClient()
-        
-        const fullName = req.body.fullName
-        const password = req.body.password
+        //REQUEST POST
+        const {fullName, password} = req.body
 
-        console.log(fullName)
-
+        //FIND USER DB
         const findUserInDb = async () => {
-            const userexist = await prisma.user.findFirst({
+            return await prisma.user.findFirst({
                 where: { fullName: fullName },
-            })
+        })}
 
-            console.log(userexist)
-            
-            if(userexist) { 
-                return true
-            }else {
-                return false
-            }
-        }
-
-        if(await findUserInDb()){
-            return res.status(400).json({error: "fullname already exists"})
-        } else {
-            //hash password later
-            const salt = await bcrypt.genSalt()
-            const hashedPassword = await bcrypt.hash(password, salt)
-
-            //create a new user in db
-            async function createUser() {
-                const user = new User(0, hashedPassword, fullName, [])
-                console.log(user)
-                await prisma.user.create({
-                    data: {
-                        //id: 0,//user.id,
-                        password: user.password,
-                        fullName: user.fullName
+        //OP 2
+        findUserInDb().then(async (user_db)=>{
+            if(!user_db){
+                //hash password
+                const salt = await bcrypt.genSalt()
+                const hashedPassword = await bcrypt.hash(password, salt)
+                
+                //create a new user in db if not exist
+                async function createUser() {
+                    const user = new User(0, hashedPassword, fullName, [])
+                        await prisma.user.create({
+                            data: {
+                                //id: 0,//user.id,
+                                password: user.password,
+                                fullName: user.fullName
+                            }
+                        })
+                        return user
                     }
+                
+                await createUser().then(async (user) => {
+                    const userForId = await prisma.user.findFirst({
+                        where: { fullName: user.fullName },
+                    })
+
+                    //Create user for Cookie
+                    const user_id = userForId!.id
+
+                    //Generate JWT Token
+                    const token = jwt.sign({user_id}, JWT_SECRET, {
+                        expiresIn: '4h'
+                    })
+
+                    res.cookie("jwtCookie", token, {
+                        maxAge: 60 * 60 * 4 * 1000,
+                        httpOnly: false, //prevent XSS attacks cross-site scripting attacks
+                        //sameSite: "strict" //CSRF attacks cross-site request forgery attacks
+                    })
+
+                    res.status(201).json({id: userForId!.id, fullName: userForId!.fullName})
+                    await prisma.$disconnect()
+
+                }).catch((error: Error)=>{
+                    console.log("Error in db", error)
                 })
-                return user
+            
+            } else {
+                return res.status(400).json({error: "User already exists"})
             }
 
-            await createUser()
-            .then(async (u) => {
-                const userForId = await prisma.user.findFirst({
-                    where: { fullName: u.fullName },
-                })
-
-                const user = new User(
-                    43,
-                    '$2a$10$cUagqGZsuz0cIiwngqRq4.jxxAbwYstcUT1YzxPMkfR66P4.GBKxi',
-                    'Kaka',
-                    []
-                )
-
-
-                //Generate JWT Token
-                const token = jwt.sign({user}, JWT_SECRET, {
-                    expiresIn: 7200 
-                })
-            
-                console.log("Token creado: "+token)
-            
-                res.cookie("jwtCookie", token, {
-                    maxAge: 60 * 60 * 4 * 1000,
-                    httpOnly: false, //prevent XSS attacks cross-site scripting attacks
-                    //sameSite: "strict" //CSRF attacks cross-site request forgery attacks
-                })
-            
-                console.log("COOKIE CREADA")
-                
-                
-
-                res.status(201).json({id: userForId?.id, fullName: u.fullName})
+        }).catch(async () => {
+            res.status(400).json({error: "Invalid user data"})
+            await prisma.$disconnect()
+            }).finally(async ()=>{
                 await prisma.$disconnect()
-            })
-            .catch(async (e) => {
-                console.error(e)
-                res.status(400).json({error: "Invalid user data"})
-                await prisma.$disconnect()
-                //process.exit(1)
-            })
-        }
-        
-        
-        
+        })
+
     } catch (error) {
-        console.log("Error in signup controller: " + error)
-        res.status(500).json({error: "Internal Server Error"})
+            res.status(500).json({error: "Internal Server Error"})
     }
 }
 
 export const login: any = async (req: any, res: any) => {
     try {
+        //INSTANCE DB
         const prisma = new PrismaClient()
-        
-        const fullName = req.body.fullName
-        const password = req.body.password
+        //REQUEST POST
+        const {fullName, password} = req.body
 
-        console.log(fullName, password)
-
+        //FIND USER DB
         const findUserInDb = async () => {
-            const userexist = await prisma.user.findFirst({
-                where: {
-                   fullName: fullName
-               }
-           });
-        
-           const bc = await bcrypt.compare(password, userexist?.password || "")
-           console.log(userexist)
+            return await prisma.user.findFirst({
+                where: { fullName: fullName },
+        })}
+
+        //OP 2
+        findUserInDb().then(async (user_db)=>{
+           const bc = await bcrypt.compare(password, user_db?.password || "")
             
-            if(!(userexist && bc)) { 
+            if(!(user_db && bc)) { 
                 return res.status(400).json({error: "Invalid username or password"}) 
             }
 
-            console.log("the user id before create token: " + userexist.id)
-            const id =  userexist.id
+            //Create user for Cookie
+            const user = new User(
+                user_db.id,
+                user_db.password,
+                user_db.fullName,
+                []
+            )
+
+            const user_id = user.id
+
+            //Generate JWT Token and Cookie
+            const token = jwt.sign({user_id}, JWT_SECRET, {
+                expiresIn: '4h'
+            })
+
+            res.cookie("jwtCookie", token, {
+                maxAge: 60 * 60 * 4 * 1000,
+                httpOnly: false, //prevent XSS attacks cross-site scripting attacks
+                sameSite: "none" //CSRF attacks cross-site request forgery attacks
+            })
             
 
-            res.status(200).json({id: userexist?.id, fullName: userexist.fullName})
-        }
-
-        await findUserInDb()
-           
+            res.status(200).json({id: user.id, fullName: user.fullName})
+        
+        }).catch(async () => {
+            res.status(400).json({error: "Invalid user data"})
+            await prisma.$disconnect()
+            }).finally(async ()=>{
+                await prisma.$disconnect()
+        })
     } catch (error) {
-        console.log("Error in login controller: " + error)
         res.status(500).json({error: "Internal Server Error"})
     }
 }

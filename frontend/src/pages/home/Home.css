@@ -1,27 +1,41 @@
 .home{
     padding: 10px;
-    background-color: aquamarine;
-    display: flex;
-    align-items: end;
-    justify-content: space-between;
-}
+    display: block;
+    align-items: start;
+    justify-content: center;
+    height: 60rem;
+    width: 30rem;
+    background: url("/bglogin.jpg");
+    background-repeat: no-repeat;
+    background-color: white;
+    background-position: center;
+    color: black;
+    text-align: center;
+    font-size: 24px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+  }
 
 .context{
-    background-color: aliceblue;
+    background-color: transparent;
+    display: block;
 }
 
 .logout{
-    background-color: blue;
+    position: relative;
+    text-align: right;
+    color: orangered;
 }
 
 .chats{
+    position: relative;
     height: 80%;
     width: 100%;
-    background-color: bisque;
+    background-color: transparent;
     display: block;
 }
 .chat_with{
     position: relative;
-    background-color: aqua;
+    background-color: white;
     margin: 10px;
 }

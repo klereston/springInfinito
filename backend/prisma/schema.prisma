@@ -41,5 +41,8 @@ model Msg {
   authorId  Int
 }
 
+// createdAt        DateTime           @default(now())
+// updatedAt        DateTime           @updatedAt
+
 //npx prisma migrate dev
 
